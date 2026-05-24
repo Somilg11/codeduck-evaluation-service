@@ -7,6 +7,8 @@ import logger from './config/logger.config';
 import { attachCorrelationIdMiddleware } from './middlewares/correlation.middleware';
 import { startworkers } from './workers/evaluation.worker';
 import { pullAllImages } from './utils/containers/pullImage.utils';
+import { createNewDockerContainer } from './utils/containers/createContainer';
+import { PYTHON_IMAGE } from './utils/constants';
 const app = express();
 
 app.use(express.json());
@@ -36,4 +38,12 @@ app.listen(serverConfig.PORT, async () => {
 
     await pullAllImages();
     logger.info(`All images pulled successfully.`);
+
+    const container = await createNewDockerContainer({
+        imageName: PYTHON_IMAGE,
+        cmdExecutable: ["python", "hello.py"],
+        memoryLimit: 512 * 1024 * 1024, // 512MB
+    });
+    await container?.start();
+    logger.info(`Docker container created successfully.`);
 });
